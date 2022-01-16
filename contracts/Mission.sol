@@ -5,25 +5,36 @@ struct Trust {
     uint level; //
 	address holder; 
 	string proposal; //Immutable
-	mapping (string => Trust) bonds; //Child Trust Node  
+	mapping (bytes32 => Trust) bonds; //Child Trust Node  
 }
 
 contract Mission {
 
 	Trust public root;
 
-	mapping (address => string[]) chain; //
+	mapping (address => bytes32[]) chain; //
 
-	constructor(address[] founders, string statement) payable {
-		root = new Trust(founders.length, 0, statement);
-		for (int i=0; i<founders.length; i++) {
-			string key = keccak256([founders[i],address(this)]]);
-			root.bonds[key] = new Trust(1, founders[i], statement);
+	constructor(address[] memory founders, string memory statement) payable {
+
+	// Request storage newRequest = requests[index]
+	// Trust storage newTrust = bonds[index]
+
+		// root = storage Trust(founders.length, 0, statement);
+		root.level = founders.length;
+		root.holder = address(this);
+		root.proposal = statement;
+
+		for (uint i=0; i<founders.length; i++) {
+			
+			bytes32 key = sha256(abi.encodePacked(founders[i], address(this)));
+			
+			root.bonds[key].level = 1;
+			root.bonds[key].holder = founders[i];
+			root.bonds[key].proposal = statement;
+
+			
 			chain[founders[i]] = [key];
 		}
 	}
 
-	// function callKeccak256() public pure returns(bytes32 result){
-    //   return keccak256("ABC");
-   	// }
 }
